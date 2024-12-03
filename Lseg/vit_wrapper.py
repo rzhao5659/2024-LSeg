@@ -28,8 +28,7 @@ class VisualTransformerWrapper(nn.Module):
 
     def __init__(self, layers_to_hook: List[int]):
         super().__init__()
-        # self.vit_model = torchvision.models.vit_l_16(weights="IMAGENET1K_V1")
-        self.vit_model = torchvision.models.resnet101(pretrained=True)
+        self.vit_model = torchvision.models.vit_l_16(weights="IMAGENET1K_V1")
         self.token_dimension = 1024
         self.patch_size = 16
         self.layers_to_hook = layers_to_hook
