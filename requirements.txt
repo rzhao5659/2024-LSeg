@@ -1,8 +1,8 @@
-pytorch==1.7.1
+pytorch
 torchvision
 pandas
 numpy
 Pillow
 glob2
 clip-by-openai
-pytorch-lightning==1.5
+pytorch-lightning
