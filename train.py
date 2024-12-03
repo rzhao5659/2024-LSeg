@@ -79,7 +79,9 @@ config = {
     "num_features": 512,
 }
 
-train_dataloaders = DataLoader(train_dataset, batch_size=config["batch_size"], shuffle=False)
+train_dataloaders = DataLoader(
+    train_dataset, num_workers=4, batch_size=config["batch_size"], shuffle=False, pin_memory=True
+)
 
 net = LSegNet(
     labels=labels,

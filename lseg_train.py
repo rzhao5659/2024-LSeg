@@ -13,9 +13,6 @@ class LSegModule(pl.LightningModule):
         self.lr = self.base_lr
         self.max_epochs = max_epochs
         self.model = model
-        # self.other_kwargs = kwargs
-        # self.enabled = False #True mixed precision will make things complicated and leading to NAN error
-        # self.scaler = amp.GradScaler(enabled=self.enabled)
         self.loss_fn = nn.CrossEntropyLoss()
 
     def forward(self, x):
@@ -29,12 +26,9 @@ class LSegModule(pl.LightningModule):
         )
         return [optimizer], [lr_scheduler]
 
-    def training_step(self, batch, batch_nb):
+    def training_step(self, batch, batch_idx):
         img, target = batch
         out = self(img)
-        print(out.shape, target.shape, img.shape)
         loss = self.loss_fn(out, target)
-
-        # train_pred = torch.argmax(out, dim=1)
         self.log("train_loss", loss, on_epoch=True, prog_bar=True)
         return loss
