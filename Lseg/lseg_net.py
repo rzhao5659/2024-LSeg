@@ -45,7 +45,6 @@ class LSegNet(BaseModel):
     def __init__(self, labels, path=None, **kwargs):
         super().__init__()
         multimodal_embedding_dim = kwargs["features"] if "features" in kwargs else 512
-        kwargs["use_bn"] = True
 
         # Segmentation text labels
         self.labels = labels
@@ -82,8 +81,8 @@ class LSegNet(BaseModel):
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
 
         # Reshape the image features
-        batch, channels, height, width = image_features.shape
-        image_features = image_features.permute(0, 2, 3, 1).view(-1, channels)
+        # [batch, channels, height, width] => image_features.shape
+        image_features = image_features.permute(0, 2, 3, 1).view(-1, imshape[1])
 
         # Compute similarity
         logits = torch.matmul(image_features, torch.transpose(text_features, 0, 1))
