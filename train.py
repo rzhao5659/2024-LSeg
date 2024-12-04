@@ -13,6 +13,7 @@ import pytorch_lightning as pl
 from lseg_train import LSegModule
 from Lseg.lseg_net import LSegNet
 
+from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.utilities.model_summary import ModelSummary
 
 
@@ -64,23 +65,24 @@ def get_labels(dataset):
         labels = labels[1:]
     return labels
 
-
+# Change these as required
 train_dataset = SegmentationDataset(folder_path="data")
+val_dataset = SegmentationDataset(folder_path="data")
 labels = get_labels("ade20k")
-# print(f"{len(labels)=}")
 
 # Configuration
 config = {
-    "data_path": "./data",
-    "dataset_name": "ade20k",
     "batch_size": 1,  # 16
     "base_lr": 0.004,
-    "max_epochs": 5,
+    "max_epochs": 3,
     "num_features": 512,
 }
 
 train_dataloaders = DataLoader(
-    train_dataset, num_workers=4, batch_size=config["batch_size"], shuffle=False, pin_memory=True
+    train_dataset, batch_size=config["batch_size"], shuffle=False, pin_memory=True
+)
+val_dataloaders = DataLoader(
+    val_dataset, batch_size=config["batch_size"], shuffle=False, pin_memory=True
 )
 
 net = LSegNet(
@@ -90,19 +92,23 @@ net = LSegNet(
 
 # Initialize model
 model = LSegModule(
-    data_path=config["data_path"],
-    dataset=config["dataset_name"],
-    batch_size=config["batch_size"],
-    base_lr=config["base_lr"],
     max_epochs=config["max_epochs"],
     model=net,
+    num_classes=len(labels),
+    batch_size=config["batch_size"],
+    base_lr=config["base_lr"],
 )
 
-summary = ModelSummary(model, max_depth=-1)
-print(summary)
+# summary = ModelSummary(model, max_depth=-1)
+# print(summary)
 
-# for name, param in model.named_parameters():
-#     print(f"Parameter: {name}, dtype: {param.dtype}, device: {param.device}")
+checkpoint_callback = ModelCheckpoint(
+    monitor="train_loss",  # Metric to monitor
+    mode="min",  # Save the model with the minimum training loss
+    save_top_k=1,  # Only keep the best model
+    filename="epoch={epoch}-train_loss={train_loss:.4f}",  # Filename format
+    verbose=False,
+)
 
 # Trainer
 trainer = pl.Trainer(
@@ -110,6 +116,7 @@ trainer = pl.Trainer(
     devices=1 if torch.cuda.is_available() else "auto",  # Use GPUs if available
     accelerator="cuda" if torch.cuda.is_available() else "auto",  # Specify GPU usage
     precision=16 if torch.cuda.is_available() else 32,  # Use mixed precision if using GPU
-    log_every_n_steps=2,
+    callbacks=[checkpoint_callback],
 )
-trainer.fit(model, train_dataloaders=train_dataloaders)
+
+trainer.fit(model, train_dataloaders=train_dataloaders, val_dataloaders=val_dataloaders)
