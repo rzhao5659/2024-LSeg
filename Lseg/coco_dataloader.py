@@ -53,7 +53,7 @@ class COCOPanopticDataset(Dataset):
         transform=None,
         target_transform=None,
         num_classes=201,
-        resize=(256, 256),
+        resize=(480, 480),
     ):
         self.images_dir = images_dir
         self.panoptic_dir = panoptic_dir
@@ -142,6 +142,7 @@ def load_coco_dataset(get_train: bool):
         annotations_file=annotations_file,
         transform=image_transforms,
         num_classes=201,
+        resize=(480, 480),
     )
 
     return dataset
