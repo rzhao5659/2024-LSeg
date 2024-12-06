@@ -16,39 +16,41 @@ from Lseg.lseg_net import LSegNet
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.utilities.model_summary import ModelSummary
 
+from Lseg.Lseg.coco_dataloader import load_coco_dataset
 
-class SegmentationDataset(Dataset):
-    def __init__(self, folder_path):
-        super().__init__()
-        self.img_files = glob.glob(os.path.join(folder_path, "semantic_img", "*.jpg"))
-        self.mask_files = []
-        for img_path in self.img_files:
-            self.mask_files.append(os.path.join(folder_path, "semantic_img_mask", pathlib.Path(img_path).stem + ".png"))
 
-        norm_mean = [0.5, 0.5, 0.5]
-        norm_std = [0.5, 0.5, 0.5]
-        print(f"** Using normalization mean={norm_mean} and std={norm_std} **")
+# class SegmentationDataset(Dataset):
+#     def __init__(self, folder_path):
+#         super().__init__()
+#         self.img_files = glob.glob(os.path.join(folder_path, "semantic_img", "*.jpg"))
+#         self.mask_files = []
+#         for img_path in self.img_files:
+#             self.mask_files.append(os.path.join(folder_path, "semantic_img_mask", pathlib.Path(img_path).stem + ".png"))
 
-        self.transforms = v2.Compose(
-            [
-                v2.Resize(size=(480, 480)),
-                v2.ToTensor(),
-                v2.ToDtype(torch.float32, scale=True),
-                v2.Normalize(norm_mean, norm_std),
-            ]
-        )
+#         norm_mean = [0.5, 0.5, 0.5]
+#         norm_std = [0.5, 0.5, 0.5]
+#         print(f"** Using normalization mean={norm_mean} and std={norm_std} **")
 
-    def __getitem__(self, index):
-        img_path = self.img_files[index]
-        mask_path = self.mask_files[index]
-        img = PIL.Image.open(img_path)
-        label = PIL.Image.open(mask_path)
-        img = self.transforms(img)
-        label = self.transforms(label)
-        return img, label
+#         self.transforms = v2.Compose(
+#             [
+#                 v2.Resize(size=(480, 480)),
+#                 v2.ToTensor(),
+#                 v2.ToDtype(torch.float32, scale=True),
+#                 v2.Normalize(norm_mean, norm_std),
+#             ]
+#         )
 
-    def __len__(self):
-        return len(self.img_files)
+#     def __getitem__(self, index):
+#         img_path = self.img_files[index]
+#         mask_path = self.mask_files[index]
+#         img = PIL.Image.open(img_path)
+#         label = PIL.Image.open(mask_path)
+#         img = self.transforms(img)
+#         label = self.transforms(label)
+#         return img, label
+
+#     def __len__(self):
+#         return len(self.img_files)
 
 
 def get_labels(dataset):
@@ -65,24 +67,28 @@ def get_labels(dataset):
         labels = labels[1:]
     return labels
 
+
 # Change these as required
-train_dataset = SegmentationDataset(folder_path="data")
-val_dataset = SegmentationDataset(folder_path="data")
-labels = get_labels("ade20k")
+# train_dataset = SegmentationDataset(folder_path="data")
+# val_dataset = SegmentationDataset(folder_path="data")
+# labels = get_labels("ade20k")
+train_dataset = load_coco_dataset(get_train=True)
+val_dataset = load_coco_dataset(get_train=False)
+# TODO:  get_labels from cocodataset.
 
 # Configuration
 config = {
-    "batch_size": 1,  # 16
+    "batch_size": 2,  # 6
     "base_lr": 0.004,
-    "max_epochs": 3,
+    "max_epochs": 2,
     "num_features": 512,
 }
 
 train_dataloaders = DataLoader(
-    train_dataset, batch_size=config["batch_size"], shuffle=False, pin_memory=True
+    train_dataset, batch_size=config["batch_size"], shuffle=False, num_workers=8, pin_memory=True
 )
 val_dataloaders = DataLoader(
-    val_dataset, batch_size=config["batch_size"], shuffle=False, pin_memory=True
+    val_dataset, batch_size=config["batch_size"], shuffle=False, num_workers=8, pin_memory=True
 )
 
 net = LSegNet(
