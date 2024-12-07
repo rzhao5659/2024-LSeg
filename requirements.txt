@@ -3,6 +3,5 @@ torchvision
 pandas
 numpy
 Pillow
-glob2
-clip-by-openai
 pytorch-lightning
+# Might be missing some

@@ -1,80 +1,19 @@
-import PIL.Image
-from torch.utils.data import Dataset
-from torch.utils.data import DataLoader
-import glob
-import os
-import PIL
-from torchvision.transforms import v2
-
-import pathlib
 import torch
 import pytorch_lightning as pl
+from torch.utils.data import DataLoader
 
-from lseg_train import LSegModule
+from Lseg.lseg_trainer import LSegModule
 from Lseg.lseg_net import LSegNet
 
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.utilities.model_summary import ModelSummary
 
-from Lseg.Lseg.coco_dataloader import load_coco_dataset
-
-
-# class SegmentationDataset(Dataset):
-#     def __init__(self, folder_path):
-#         super().__init__()
-#         self.img_files = glob.glob(os.path.join(folder_path, "semantic_img", "*.jpg"))
-#         self.mask_files = []
-#         for img_path in self.img_files:
-#             self.mask_files.append(os.path.join(folder_path, "semantic_img_mask", pathlib.Path(img_path).stem + ".png"))
-
-#         norm_mean = [0.5, 0.5, 0.5]
-#         norm_std = [0.5, 0.5, 0.5]
-#         print(f"** Using normalization mean={norm_mean} and std={norm_std} **")
-
-#         self.transforms = v2.Compose(
-#             [
-#                 v2.Resize(size=(480, 480)),
-#                 v2.ToTensor(),
-#                 v2.ToDtype(torch.float32, scale=True),
-#                 v2.Normalize(norm_mean, norm_std),
-#             ]
-#         )
-
-#     def __getitem__(self, index):
-#         img_path = self.img_files[index]
-#         mask_path = self.mask_files[index]
-#         img = PIL.Image.open(img_path)
-#         label = PIL.Image.open(mask_path)
-#         img = self.transforms(img)
-#         label = self.transforms(label)
-#         return img, label
-
-#     def __len__(self):
-#         return len(self.img_files)
-
-
-def get_labels(dataset):
-    labels = []
-    path = "data/label_files/{}_objectInfo150.txt".format(dataset)
-    assert os.path.exists(path), "*** Error : {} not exist !!!".format(path)
-    f = open(path, "r")
-    lines = f.readlines()
-    for line in lines:
-        label = line.strip().split(",")[-1].split(";")[0]
-        labels.append(label)
-    f.close()
-    if dataset in ["ade20k"]:
-        labels = labels[1:]
-    return labels
-
+from Lseg.data.util import get_labels, get_dataset
 
 # Change these as required
-# train_dataset = SegmentationDataset(folder_path="data")
-# val_dataset = SegmentationDataset(folder_path="data")
-# labels = get_labels("ade20k")
-train_dataset = load_coco_dataset(get_train=True)
-val_dataset = load_coco_dataset(get_train=False)
-# TODO:  get_labels from cocodataset.
+train_dataset = get_dataset(dataset_name="coco", get_train=True)
+val_dataset = get_dataset(dataset_name="coco", get_train=False)
+labels = get_labels()
 
 # Configuration
 config = {
