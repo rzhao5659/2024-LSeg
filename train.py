@@ -7,6 +7,7 @@ from Lseg.lseg_net import LSegNet
 
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.utilities.model_summary import ModelSummary
+from pytorch_lightning.loggers import WandbLogger
 
 from Lseg.data.util import get_labels, get_dataset
 
@@ -23,12 +24,8 @@ config = {
     "num_features": 512,
 }
 
-train_dataloaders = DataLoader(
-    train_dataset, batch_size=config["batch_size"], shuffle=False, num_workers=8, pin_memory=True
-)
-val_dataloaders = DataLoader(
-    val_dataset, batch_size=config["batch_size"], shuffle=False, num_workers=8, pin_memory=True
-)
+train_dataloaders = DataLoader(train_dataset, batch_size=config["batch_size"], shuffle=False, num_workers=8)
+val_dataloaders = DataLoader(val_dataset, batch_size=config["batch_size"], shuffle=False, num_workers=8)
 
 net = LSegNet(
     labels=labels,
@@ -55,6 +52,12 @@ checkpoint_callback = ModelCheckpoint(
     verbose=False,
 )
 
+# Wandb logger
+wandb_logger = WandbLogger(
+    project="LSeg",
+    log_model="all",
+)
+
 # Trainer
 trainer = pl.Trainer(
     max_epochs=config["max_epochs"],
@@ -62,6 +65,7 @@ trainer = pl.Trainer(
     accelerator="cuda" if torch.cuda.is_available() else "auto",  # Specify GPU usage
     precision=16 if torch.cuda.is_available() else 32,  # Use mixed precision if using GPU
     callbacks=[checkpoint_callback],
+    logger=wandb_logger,
 )
 
 trainer.fit(model, train_dataloaders=train_dataloaders, val_dataloaders=val_dataloaders)
