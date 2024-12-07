@@ -11,7 +11,7 @@ import torch
 from torch.utils.data import Dataset
 
 """
-Copied from https://github.com/mseg-dataset/mseg-semantic/blob/master/mseg_semantic/utils/dataset.py
+Modified from https://github.com/mseg-dataset/mseg-semantic/blob/master/mseg_semantic/utils/dataset.py
 """
 
 IMG_EXTENSIONS = [".jpg", ".jpeg", ".png", ".ppm", ".bmp", ".pgm"]
@@ -72,7 +72,13 @@ def make_dataset(split: str, data_root: str, data_list_fpath: str) -> List[Tuple
 
 class SemData(Dataset):
     def __init__(
-        self, split: str = "train", data_root: str = None, data_list: str = None, transform: Optional[Callable] = None
+        self,
+        split: str = "train",
+        data_root: str = None,
+        data_list: str = None,
+        together_transform: Optional[Callable] = None,
+        img_transform: Optional[Callable] = None,
+        label_transform: Optional[Callable] = None,
     ) -> None:
         """Dataloader class for semantic segmentation datasets.
 
@@ -84,7 +90,11 @@ class SemData(Dataset):
         """
         self.split = split
         self.data_list = make_dataset(split, data_root, data_list)
-        self.transform = transform
+        self.img_transform = img_transform
+        self.label_transform = label_transform
+        self.together_transform = together_transform
+        print("image folder path:", data_root)
+        print("text path:", data_list)
 
     def __len__(self) -> int:
         return len(self.data_list)
@@ -101,11 +111,14 @@ class SemData(Dataset):
 
         if image.shape[0] != label.shape[0] or image.shape[1] != label.shape[1]:
             raise (RuntimeError("Image & label shape mismatch: " + image_path + " " + label_path + "\n"))
-        if self.transform is not None:
-            if self.split != "test":
-                image, label = self.transform(image, label)
-            else:
-                # use dummy label in transform, since label unknown for test
-                image, label = self.transform(image, image[:, :, 0])
 
+        if self.split == "test":
+            # use dummy label in transform, since label unknown for test
+            label = image[:, :, 0]
+        if self.together_transform is not None:
+            image, label = self.together_transform(image, label)
+        if self.img_transform is not None:
+            image = self.img_transform(image)
+        if self.label_transform is not None:
+            label = self.label_transform(label)
         return image, label

@@ -9,13 +9,14 @@ from mseg.utils.names_utils import load_class_names
 
 # -------------------------------------------------------------
 # You must specify the parent directory of `mseg_dataset` below:
-MSEG_DST_DIR = "/Users/surabhigade/Desktop/Code/MLProject/Datasets"
+MSEG_DST_DIR = "/home/richard/workspaces/ML/Lseg/data"
 # -------------------------------------------------------------
 if MSEG_DST_DIR == "":
     raise Exception("You must populate the `MSEG_DST_DIR` variable in mseg/utils/dataset_config.py")
 
 
 ROOT = Path(__file__).resolve().parent.parent  # ../..
+
 
 @dataclass
 class DatasetInfo:
@@ -28,9 +29,10 @@ class DatasetInfo:
         vallist: path to .txt file containing file paths for the validation split.
         vallist_small: path to .txt file containing file paths for a subsampled version of the validation split.
         names_path: path to .txt file containing ordered class names for the dataset.
-        shortname: 
+        shortname:
         num_classes: number of classes in the dataset.
     """
+
     name: str
     dataroot: str
     trainlist: Optional[str] = None
@@ -46,46 +48,34 @@ infos = [
     DatasetInfo("ade20k-151", f"{MSEG_DST_DIR}/mseg_dataset/ADE20K/ADEChallengeData2016"),
     DatasetInfo("ade20k-150", f"{MSEG_DST_DIR}/mseg_dataset/ADE20K/ADEChallengeData2016"),
     DatasetInfo("ade20k-150-relabeled", f"{MSEG_DST_DIR}/mseg_dataset/ADE20K/ADEChallengeData2016"),
-
     DatasetInfo("bdd", f"{MSEG_DST_DIR}/mseg_dataset/BDD/bdd100k"),
     DatasetInfo("bdd-relabeled", f"{MSEG_DST_DIR}/mseg_dataset/BDD/bdd100k"),
-
     DatasetInfo("camvid-11", f"{MSEG_DST_DIR}/mseg_dataset/Camvid"),
-
     DatasetInfo("cityscapes-34", f"{MSEG_DST_DIR}/mseg_dataset/Cityscapes"),
     DatasetInfo("cityscapes-19", f"{MSEG_DST_DIR}/mseg_dataset/Cityscapes"),
     DatasetInfo("cityscapes-19-relabeled", f"{MSEG_DST_DIR}/mseg_dataset/Cityscapes"),
     DatasetInfo("cityscapes-34-relabeled", f"{MSEG_DST_DIR}/mseg_dataset/Cityscapes"),
-
     DatasetInfo("coco-panoptic-inst-201", f"{MSEG_DST_DIR}/mseg_dataset/COCOPanoptic"),
     DatasetInfo("coco-panoptic-201", f"{MSEG_DST_DIR}/mseg_dataset/COCOPanoptic"),
     DatasetInfo("coco-panoptic-133", f"{MSEG_DST_DIR}/mseg_dataset/COCOPanoptic"),
     DatasetInfo("coco-panoptic-133-relabeled", f"{MSEG_DST_DIR}/mseg_dataset/COCOPanoptic"),
-
     DatasetInfo("idd-40", f"{MSEG_DST_DIR}/mseg_dataset/IDD/IDD_Segmentation"),
     DatasetInfo("idd-39", f"{MSEG_DST_DIR}/mseg_dataset/IDD/IDD_Segmentation"),
     DatasetInfo("idd-39-relabeled", f"{MSEG_DST_DIR}/mseg_dataset/IDD/IDD_Segmentation"),
-
     DatasetInfo("kitti-34", f"{MSEG_DST_DIR}/mseg_dataset/KITTI/"),
     DatasetInfo("kitti-19", f"{MSEG_DST_DIR}/mseg_dataset/KITTI/"),
-
     #  mapillary-public66 -> labels are not in semseg format (RGB labels)
     DatasetInfo("mapillary-public66", f"{MSEG_DST_DIR}/mseg_dataset/MapillaryVistasPublic"),
     DatasetInfo("mapillary-public65", f"{MSEG_DST_DIR}/mseg_dataset/MapillaryVistasPublic"),
     DatasetInfo("mapillary-public65-relabeled", f"{MSEG_DST_DIR}/mseg_dataset/MapillaryVistasPublic"),
-
     DatasetInfo("pascal-context-460", f"{MSEG_DST_DIR}/mseg_dataset/PASCAL_Context"),
     DatasetInfo("pascal-context-60", f"{MSEG_DST_DIR}/mseg_dataset/PASCAL_Context"),
-
     DatasetInfo("scannet-41", f"{MSEG_DST_DIR}/mseg_dataset/ScanNet/scannet_frames_25k"),
     DatasetInfo("scannet-20", f"{MSEG_DST_DIR}/mseg_dataset/ScanNet/scannet_frames_25k"),
-
     DatasetInfo("sunrgbd-38", f"{MSEG_DST_DIR}/mseg_dataset/SUNRGBD"),
     DatasetInfo("sunrgbd-37", f"{MSEG_DST_DIR}/mseg_dataset/SUNRGBD"),
     DatasetInfo("sunrgbd-37-relabeled", f"{MSEG_DST_DIR}/mseg_dataset/SUNRGBD"),
-
     DatasetInfo("voc2012", f"{MSEG_DST_DIR}/mseg_dataset/PASCAL_VOC_2012"),
-
     DatasetInfo("wilddash-19", f"{MSEG_DST_DIR}/mseg_dataset/WildDash"),
 ]
 
@@ -93,7 +83,6 @@ infos = [
 infos = {info.name: info for info in infos}
 
 for name, info in infos.items():
-
     if name.endswith("-sr"):
         folder_name = name.replace("-sr", "")
     else:

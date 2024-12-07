@@ -3,6 +3,7 @@ import pandas as pd
 from mseg.taxonomy.taxonomy_converter import TaxonomyConverter
 from Lseg.data.dataset import SemData
 import os
+from torchvision.transforms import v2
 
 # PATHS
 DATASETS = ["coco", "ade20k"]
@@ -36,6 +37,11 @@ class ToUniversalLabel:
         return df["universal"]
 
 
+# A custom transform to map 255 (unlabeled) in the label tensor, to the correct label number 194 (which is unlabeled as well)
+def change_255_to_194(tensor):
+    return torch.where(tensor == 255, torch.tensor(194, dtype=tensor.dtype), tensor)
+
+
 def get_dataset(dataset_name: str, get_train: bool):
     """Gets validation set if get_train = False.  dataset_name must be coco or ade20k"""
     assert dataset_name in DATASETS, "Must be either coco or ade20k"
@@ -50,24 +56,47 @@ def get_dataset(dataset_name: str, get_train: bool):
         val_text_path = ade20k_val_text_path
         dataset_actual_name = "ade20k-150-relabeled"
 
+    img_transform = v2.Compose(
+        [
+            v2.ToTensor(),
+            lambda x: v2.functional.permute_channels(x, permutation=(2, 0, 1)),  # (H,W,C) to (C,H,W)
+            v2.CenterCrop(size=(480, 480)),
+            v2.ToDtype(torch.float32, scale=True),
+            v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
+
+    label_transform = v2.Compose(
+        [
+            v2.ToTensor(),
+            v2.CenterCrop(size=(480, 480)),  # Crop instead of resize to avoid interpolation of labels
+            lambda x: change_255_to_194(x),  # Using lambda to apply the custom transform
+        ]
+    )
+
     if get_train is True:
         dataset = SemData(
             split="train",
             data_root=img_dir,
             data_list=train_text_path,
-            transform=ToUniversalLabel(dataset_actual_name),
+            together_transform=ToUniversalLabel(dataset_actual_name),
+            img_transform=img_transform,
+            label_transform=label_transform,
         )
     else:
         dataset = SemData(
             split="val",
             data_root=img_dir,
             data_list=val_text_path,
-            transform=ToUniversalLabel(dataset_actual_name),
+            together_transform=ToUniversalLabel(dataset_actual_name),
+            img_transform=img_transform,
+            label_transform=label_transform,
         )
     return dataset
 
 
 def get_labels():
-    """Returns universal labels"""
+    """Returns universal labels as a List of strings"""
     universal_labels = ToUniversalLabel.read_MSeg_master(semantic_label_tsv_path)
-    return universal_labels
+    labels_list = list(universal_labels)
+    return labels_list

@@ -2,7 +2,7 @@
 
 # Apply re-labeling to each of these datasets.
 
-NUM_CORES_TO_USE=$1
+NUM_CORES_TO_USE=8
 
 # ---------- Environment Variables / Directory Setup -------------------------
 
@@ -14,13 +14,14 @@ echo "Repo is stored at "$REPO_ROOT
 
 # --------- Relabeling ------------------------------------------------------
 
-#now=$(date +"%Y %m %d @ %H:%M:%S")
-#echo "Start re-labeling of training datasets at "$now
+now=$(date +"%Y %m %d @ %H:%M:%S")
+echo "Start re-labeling of training datasets at "$now
+
 echo "Apply re-labeling to ade20k-150"
 
 python -u $REPO_ROOT/mseg/label_preparation/mseg_write_relabeled_segments.py \
 	--num_processes $NUM_CORES_TO_USE --dataset_to_relabel ade20k-150
-#
+
 #echo "Apply re-labeling to bdd"
 #
 #python -u $REPO_ROOT/mseg/label_preparation/mseg_write_relabeled_segments.py \
@@ -36,10 +37,10 @@ python -u $REPO_ROOT/mseg/label_preparation/mseg_write_relabeled_segments.py \
 #python -u $REPO_ROOT/mseg/label_preparation/mseg_write_relabeled_segments.py \
 #	--num_processes $NUM_CORES_TO_USE --dataset_to_relabel cityscapes-34
 
-#echo "Apply re-labeling to coco-panoptic-133"
-#
-#python -u $REPO_ROOT/mseg/label_preparation/mseg_write_relabeled_segments.py \
-#	--num_processes $NUM_CORES_TO_USE --dataset_to_relabel coco-panoptic-133
+# echo "Apply re-labeling to coco-panoptic-133"
+
+# python -u $REPO_ROOT/mseg/label_preparation/mseg_write_relabeled_segments.py \
+# 	--num_processes $NUM_CORES_TO_USE --dataset_to_relabel coco-panoptic-133
 
 #echo "Apply re-labeling to idd-39"
 #
