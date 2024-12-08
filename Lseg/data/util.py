@@ -60,7 +60,7 @@ def get_dataset(dataset_name: str, get_train: bool):
         [
             v2.ToTensor(),
             lambda x: v2.functional.permute_channels(x, permutation=(2, 0, 1)),  # (H,W,C) to (C,H,W)
-            v2.CenterCrop(size=(480, 480)),
+            v2.RandomCrop(size=(480, 480)),
             v2.ToDtype(torch.float32, scale=True),
             v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ]
@@ -69,7 +69,7 @@ def get_dataset(dataset_name: str, get_train: bool):
     label_transform = v2.Compose(
         [
             v2.ToTensor(),
-            v2.CenterCrop(size=(480, 480)),  # Crop instead of resize to avoid interpolation of labels
+            v2.RandomCrop(size=(480, 480)),  # Crop instead of resize to avoid interpolation of labels
             lambda x: change_255_to_194(x),  # Using lambda to apply the custom transform
         ]
     )

@@ -4,5 +4,8 @@ pandas
 numpy
 Pillow
 pytorch-lightning
+ftfy 
+regex 
+tqdm
 wandb
 # Might be missing some

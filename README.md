@@ -5,6 +5,8 @@ Install mseg module, then install our requirements
 ```
 pip install -e mseg
 pip install -r requirements.txt
+pip install ftfy regex tqdm
+pip install git+https://github.com/openai/CLIP.git
 ```
 
 ## Data Notes
