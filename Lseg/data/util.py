@@ -29,7 +29,7 @@ class RandomResizedCropWithSameParams:
 
     def __call__(self, image, label):
         # Apply the same random resize crop to both image and label
-        i, j, h, w = self.random_resized_crop.get_params(image)
+        i, j, h, w = self.random_resized_crop.get_params(image, self.scale, self.ratio)
         image_cropped = image.crop((j, i, j + w, i + h))
         label_cropped = label.crop((j, i, j + w, i + h))
         image_resized = image_cropped.resize(self.size)
@@ -95,7 +95,7 @@ def get_dataset(dataset_name: str, get_train: bool):
     together_transform = v2.Compose(
         [
             ToUniversalLabel(dataset_actual_name),
-            RandomResizedCropWithSameParams(size=(480, 480), scale=1.0, ratio=1.0),
+            RandomResizedCropWithSameParams(size=(480, 480)),
         ]
     )
 
