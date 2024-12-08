@@ -5,6 +5,7 @@ from Lseg.data.dataset import SemData
 import os
 from torchvision.transforms import v2
 from torchvision.transforms import RandomResizedCrop
+from torchvision.transforms.functional import crop, resize
 from PIL import Image
 
 # PATHS
@@ -30,10 +31,10 @@ class RandomResizedCropWithSameParams:
     def __call__(self, image, label):
         # Apply the same random resize crop to both image and label
         i, j, h, w = self.random_resized_crop.get_params(image, self.scale, self.ratio)
-        image_cropped = image.crop((j, i, j + w, i + h))
-        label_cropped = label.crop((j, i, j + w, i + h))
-        image_resized = image_cropped.resize(self.size)
-        label_resized = label_cropped.resize(self.size, resample=Image.NEAREST)
+        image_cropped = crop(image, (j, i, j + w, i + h))
+        label_cropped = crop(label, (j, i, j + w, i + h))
+        image_resized = resize(image_cropped, self.size)
+        label_resized = resize(label_cropped, self.size, interpolation=Image.NEAREST)
         return image_resized, label_resized
 
 
