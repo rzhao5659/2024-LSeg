@@ -95,7 +95,7 @@ def get_dataset(dataset_name: str, get_train: bool):
     together_transform = v2.Compose(
         [
             ToUniversalLabel(dataset_actual_name),
-            RandomResizedCropWithSameParams(size=(480, 480)),
+            RandomResizedCropWithSameParams(size=(480, 480), scale=1.0, ratio=1.0),
         ]
     )
 
