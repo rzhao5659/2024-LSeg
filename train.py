@@ -11,6 +11,11 @@ from pytorch_lightning.loggers import WandbLogger
 
 from Lseg.data.util import get_labels, get_dataset
 
+
+# Path to the latest checkpoint. Set to None if you don't have.
+latest_checkpoint_path = "./checkpoints/epoch-last.ckpt"
+
+
 # Change these as required
 train_dataset = get_dataset(dataset_name="coco", get_train=True)
 val_dataset = get_dataset(dataset_name="coco", get_train=False)
@@ -20,7 +25,7 @@ labels = get_labels()
 config = {
     "batch_size": 12,  # 6
     "base_lr": 0.04,
-    "max_epochs": 4,
+    "max_epochs": 50,
     "num_features": 512,
 }
 
@@ -68,4 +73,10 @@ trainer = pl.Trainer(
     logger=wandb_logger,
 )
 
-trainer.fit(model, train_dataloaders=train_dataloaders, val_dataloaders=val_dataloaders)
+# Continue training
+trainer.fit(
+    model,
+    train_dataloaders=train_dataloaders,
+    val_dataloaders=val_dataloaders,
+    ckpt_path=latest_checkpoint_path,  # Resume from the latest checkpoint
+)

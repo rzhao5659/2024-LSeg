@@ -73,7 +73,6 @@ class LSegModule(pl.LightningModule):
         # Update and log validation metrics
         self.val_accuracy.update(preds, target_val)
         self.val_iou.update(preds, target_val)
-        # Pixel accuracy not included
         self.log("val_loss", val_loss, prog_bar=True)
         self.log("val_accuracy", self.val_accuracy.compute(), prog_bar=True)
         self.log("val_iou", self.val_iou.compute(), prog_bar=True)
