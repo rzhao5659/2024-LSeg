@@ -13,8 +13,7 @@ from Lseg.data.util import get_labels, get_dataset
 
 
 # Path to the latest checkpoint. Set to None if you don't have.
-latest_checkpoint_path = "./checkpoints/epoch-last.ckpt"
-
+latest_checkpoint_path = "LSeg/bigttpzj/checkpoints/epoch=epoch=0-train_loss=train_loss=4.9139.ckpt"
 
 # Change these as required
 train_dataset = get_dataset(dataset_name="coco", get_train=True)
@@ -50,11 +49,13 @@ model = LSegModule(
 # print(summary)
 
 checkpoint_callback = ModelCheckpoint(
-    monitor="train_loss",  # Metric to monitor
-    mode="min",  # Save the model with the minimum training loss
+    dirpath="checkpoints",
+    monitor="val_loss",  # Metric to monitor
+    mode="min",  # Save the model with the minimum loss
     save_top_k=1,  # Only keep the best model
-    filename="epoch={epoch}-train_loss={train_loss:.4f}",  # Filename format
+    filename="checkpoint_{epoch}-{val_loss:.4f}",  # Filename format
     verbose=False,
+    save_on_train_epoch_end=True,
 )
 
 # Wandb logger
@@ -70,6 +71,7 @@ trainer = pl.Trainer(
     accelerator="cuda" if torch.cuda.is_available() else "auto",  # Specify GPU usage
     precision=16 if torch.cuda.is_available() else 32,  # Use mixed precision if using GPU
     callbacks=[checkpoint_callback],
+    default_root_dir="checkpoints",
     logger=wandb_logger,
 )
 
