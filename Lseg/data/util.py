@@ -61,6 +61,7 @@ def get_dataset(dataset_name: str, get_train: bool):
     img_transform = v2.Compose(
         [
             v2.ToTensor(),
+            v2.Resize(size=(320, 320)),
             lambda x: v2.functional.permute_channels(x, permutation=(2, 0, 1)),  # (H,W,C) to (C,H,W)
             v2.ToDtype(torch.float32, scale=True),
             v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
@@ -70,16 +71,12 @@ def get_dataset(dataset_name: str, get_train: bool):
     label_transform = v2.Compose(
         [
             v2.ToTensor(),
+            v2.Resize(size=(320, 320), interpolation=InterpolationMode.NEAREST),
             lambda x: change_255_to_194(x),  # Using lambda to apply the custom transform
         ]
     )
 
-    together_transform = v2.Compose(
-        [
-            v2.Resize(size=(320, 320), interpolation=InterpolationMode.NEAREST),
-            ToUniversalLabel(dataset_actual_name),
-        ]
-    )
+    together_transform = ToUniversalLabel(dataset_actual_name)
 
     if get_train is True:
         dataset = SemData(
