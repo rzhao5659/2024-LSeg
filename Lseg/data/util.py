@@ -4,8 +4,7 @@ from mseg.taxonomy.taxonomy_converter import TaxonomyConverter
 from Lseg.data.dataset import SemData
 import os
 from torchvision.transforms import v2
-from torchvision.transforms import RandomResizedCrop
-from torchvision.transforms.functional import crop, resize
+from torchvision.transforms import InterpolationMode
 from PIL import Image
 
 # PATHS
@@ -18,24 +17,6 @@ coco_val_text_path = "mseg-api/mseg/dataset_lists/coco-panoptic-133-relabeled/li
 ade20k_images_dir = "data/mseg_dataset/ADE20K/"
 ade20k_train_text_path = "mseg-api/mseg/dataset_lists/ade20k-150-relabeled/list/train.txt"
 ade20k_val_text_path = "mseg-api/mseg/dataset_lists/ade20k-150-relabeled/list/train.txt"
-
-
-# Transform
-class RandomResizedCropWithSameParams:
-    def __init__(self, size, scale=(0.08, 1.0), ratio=(0.75, 1.33)):
-        self.size = size
-        self.scale = scale
-        self.ratio = ratio
-        self.random_resized_crop = RandomResizedCrop(size=self.size, scale=self.scale, ratio=self.ratio)
-
-    def __call__(self, image, label):
-        # Apply the same random resize crop to both image and label
-        i, j, h, w = self.random_resized_crop.get_params(image, self.scale, self.ratio)
-        image_cropped = crop(image, (j, i, j + w, i + h))
-        label_cropped = crop(label, (j, i, j + w, i + h))
-        image_resized = resize(image_cropped, self.size)
-        label_resized = resize(label_cropped, self.size, interpolation=Image.NEAREST)
-        return image_resized, label_resized
 
 
 # This is a Callable object similar to pytorch transforms.
@@ -94,10 +75,7 @@ def get_dataset(dataset_name: str, get_train: bool):
     )
 
     together_transform = v2.Compose(
-        [
-            ToUniversalLabel(dataset_actual_name),
-            RandomResizedCropWithSameParams(size=(480, 480)),
-        ]
+        [ToUniversalLabel(dataset_actual_name), v2.Resize(size=(320, 320), interpolation=InterpolationMode.NEAREST)]
     )
 
     if get_train is True:
