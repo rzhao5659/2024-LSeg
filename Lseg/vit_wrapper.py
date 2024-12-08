@@ -33,6 +33,9 @@ class VisualTransformerWrapper(nn.Module):
             layer = getattr(self.vit_model.encoder.layers, f"encoder_layer_{layer_idx}")
             layer.register_forward_hook(functools.partial(self._store_layer_output, storage_idx=i))
 
+        # Freeze the learned position embeddings
+        self.vit_model.encoder.pos_embedding.requires_grad_(False)
+
     def forward(self, X):
         # Check if we need to adjust position embeddings:
         # ViT model are pretrained with specific input image size.
