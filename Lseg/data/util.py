@@ -4,6 +4,8 @@ from mseg.taxonomy.taxonomy_converter import TaxonomyConverter
 from Lseg.data.dataset import SemData
 import os
 from torchvision.transforms import v2
+from torchvision.transforms import RandomResizedCrop
+from PIL import Image
 
 # PATHS
 DATASETS = ["coco", "ade20k"]
@@ -15,6 +17,24 @@ coco_val_text_path = "mseg-api/mseg/dataset_lists/coco-panoptic-133-relabeled/li
 ade20k_images_dir = "data/mseg_dataset/ADE20K/"
 ade20k_train_text_path = "mseg-api/mseg/dataset_lists/ade20k-150-relabeled/list/train.txt"
 ade20k_val_text_path = "mseg-api/mseg/dataset_lists/ade20k-150-relabeled/list/train.txt"
+
+
+# Transform
+class RandomResizedCropWithSameParams:
+    def __init__(self, size, scale=(0.08, 1.0), ratio=(0.75, 1.33)):
+        self.size = size
+        self.scale = scale
+        self.ratio = ratio
+        self.random_resized_crop = RandomResizedCrop(size=self.size, scale=self.scale, ratio=self.ratio)
+
+    def __call__(self, image, label):
+        # Apply the same random resize crop to both image and label
+        i, j, h, w = self.random_resized_crop.get_params(image)
+        image_cropped = image.crop((j, i, j + w, i + h))
+        label_cropped = label.crop((j, i, j + w, i + h))
+        image_resized = image_cropped.resize(self.size)
+        label_resized = label_cropped.resize(self.size, resample=Image.NEAREST)
+        return image_resized, label_resized
 
 
 # This is a Callable object similar to pytorch transforms.
@@ -60,7 +80,6 @@ def get_dataset(dataset_name: str, get_train: bool):
         [
             v2.ToTensor(),
             lambda x: v2.functional.permute_channels(x, permutation=(2, 0, 1)),  # (H,W,C) to (C,H,W)
-            v2.RandomCrop(size=(480, 480)),
             v2.ToDtype(torch.float32, scale=True),
             v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ]
@@ -69,8 +88,14 @@ def get_dataset(dataset_name: str, get_train: bool):
     label_transform = v2.Compose(
         [
             v2.ToTensor(),
-            v2.RandomCrop(size=(480, 480)),  # Crop instead of resize to avoid interpolation of labels
             lambda x: change_255_to_194(x),  # Using lambda to apply the custom transform
+        ]
+    )
+
+    together_transform = v2.Compose(
+        [
+            ToUniversalLabel(dataset_actual_name),
+            RandomResizedCropWithSameParams(size=(480, 480)),
         ]
     )
 
@@ -79,7 +104,7 @@ def get_dataset(dataset_name: str, get_train: bool):
             split="train",
             data_root=img_dir,
             data_list=train_text_path,
-            together_transform=ToUniversalLabel(dataset_actual_name),
+            together_transform=together_transform,
             img_transform=img_transform,
             label_transform=label_transform,
         )
@@ -88,7 +113,7 @@ def get_dataset(dataset_name: str, get_train: bool):
             split="val",
             data_root=img_dir,
             data_list=val_text_path,
-            together_transform=ToUniversalLabel(dataset_actual_name),
+            together_transform=together_transform,
             img_transform=img_transform,
             label_transform=label_transform,
         )

@@ -18,9 +18,9 @@ labels = get_labels()
 
 # Configuration
 config = {
-    "batch_size": 2,  # 6
-    "base_lr": 0.004,
-    "max_epochs": 2,
+    "batch_size": 12,  # 6
+    "base_lr": 0.04,
+    "max_epochs": 4,
     "num_features": 512,
 }
 
