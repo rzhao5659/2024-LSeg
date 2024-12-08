@@ -75,7 +75,10 @@ def get_dataset(dataset_name: str, get_train: bool):
     )
 
     together_transform = v2.Compose(
-        [ToUniversalLabel(dataset_actual_name), v2.Resize(size=(320, 320), interpolation=InterpolationMode.NEAREST)]
+        [
+            v2.Resize(size=(320, 320), interpolation=InterpolationMode.NEAREST),
+            ToUniversalLabel(dataset_actual_name),
+        ]
     )
 
     if get_train is True:
