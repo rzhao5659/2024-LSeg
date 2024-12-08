@@ -13,7 +13,9 @@ from Lseg.data.util import get_labels, get_dataset
 
 
 # Path to the latest checkpoint. Set to None if you don't have.
-latest_checkpoint_path = "LSeg/bigttpzj/checkpoints/epoch=epoch=0-train_loss=train_loss=4.9139.ckpt"
+# latest_checkpoint_path = "checkpoints/checkpoint_epoch=3-val_loss=5.2011.ckpt"
+latest_checkpoint_path = "checkpoints/epoch=epoch=0-train_loss=train_loss=4.9139.ckpt"
+# latest_checkpoint_path = None
 
 # Change these as required
 train_dataset = get_dataset(dataset_name="coco", get_train=True)
@@ -45,8 +47,8 @@ model = LSegModule(
     base_lr=config["base_lr"],
 )
 
-# summary = ModelSummary(model, max_depth=-1)
-# print(summary)
+summary = ModelSummary(model, max_depth=-1)
+print(summary)
 
 checkpoint_callback = ModelCheckpoint(
     dirpath="checkpoints",
@@ -71,7 +73,6 @@ trainer = pl.Trainer(
     accelerator="cuda" if torch.cuda.is_available() else "auto",  # Specify GPU usage
     precision=16 if torch.cuda.is_available() else 32,  # Use mixed precision if using GPU
     callbacks=[checkpoint_callback],
-    default_root_dir="checkpoints",
     logger=wandb_logger,
 )
 

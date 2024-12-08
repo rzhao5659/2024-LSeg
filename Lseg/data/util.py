@@ -103,4 +103,5 @@ def get_labels():
     """Returns universal labels as a List of strings"""
     universal_labels = ToUniversalLabel.read_MSeg_master(semantic_label_tsv_path)
     labels_list = list(universal_labels)
+    labels_list[-1] = "other"  # Change unlabeled to other, following Lseg. 
     return labels_list

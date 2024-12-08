@@ -35,7 +35,17 @@ class VisualTransformerWrapper(nn.Module):
 
         # Freeze the learned position embeddings
         self.vit_model.encoder.pos_embedding.requires_grad_(False)
+        
+        # For training purposes (stored model checkpoint must have same positional embedding size), 
+        # Therefore, set to H=W=320, and interpolate position embeddings.
+        image_size_during_training = 320
+        self.vit_model.image_size = image_size_during_training
+        new_model_state = interpolate_embeddings(
+            image_size_during_training, patch_size=16, model_state=self.vit_model.state_dict()
+        )
+        self.vit_model.encoder.pos_embedding.data = new_model_state["encoder.pos_embedding"]
 
+        
     def forward(self, X):
         # Check if we need to adjust position embeddings:
         # ViT model are pretrained with specific input image size.
