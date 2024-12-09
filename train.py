@@ -13,8 +13,8 @@ from Lseg.data.util import get_labels, get_dataset
 
 
 # Path to the latest checkpoint. Set to None if you don't have.
-# latest_checkpoint_path = "checkpoints/checkpoint_epoch=3-val_loss=5.2011.ckpt"
-latest_checkpoint_path = "checkpoints/epoch=epoch=0-train_loss=train_loss=4.9139.ckpt"
+# latest_checkpoint_path = "checkpoints/epoch=epoch=0-train_loss=train_loss=4.9139.ckpt"
+latest_checkpoint_path = "checkpoints/checkpoint_epoch=3-val_loss=4.9235"
 # latest_checkpoint_path = None
 
 # Change these as required
@@ -50,7 +50,7 @@ model = LSegModule(
 summary = ModelSummary(model, max_depth=-1)
 print(summary)
 
-checkpoint_callback = ModelCheckpoint(
+best_val_checkpoint_callback = ModelCheckpoint(
     dirpath="checkpoints",
     monitor="val_loss",  # Metric to monitor
     mode="min",  # Save the model with the minimum loss
@@ -58,6 +58,15 @@ checkpoint_callback = ModelCheckpoint(
     filename="checkpoint_{epoch}-{val_loss:.4f}",  # Filename format
     verbose=False,
     save_on_train_epoch_end=True,
+)
+
+last_checkpoint_callback = ModelCheckpoint(
+    dirpath="checkpoints",
+    monitor="step",  
+    mode="max", 
+    every_n_train_steps = 1000, 
+    save_top_k=1,  # Only keep one model
+    filename="lastest-{epoch}-{step}",  # Filename format
 )
 
 # Wandb logger
@@ -72,7 +81,7 @@ trainer = pl.Trainer(
     devices=1 if torch.cuda.is_available() else "auto",  # Use GPUs if available
     accelerator="cuda" if torch.cuda.is_available() else "auto",  # Specify GPU usage
     precision=16 if torch.cuda.is_available() else 32,  # Use mixed precision if using GPU
-    callbacks=[checkpoint_callback],
+    callbacks=[best_val_checkpoint_callback, last_checkpoint_callback],
     logger=wandb_logger,
 )
 
