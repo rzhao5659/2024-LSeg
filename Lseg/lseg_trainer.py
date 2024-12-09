@@ -12,14 +12,12 @@ class LSegModule(pl.LightningModule):
         self.lr = self.base_lr
         self.max_epochs = max_epochs
         self.model = model
-        self.loss_fn = nn.CrossEntropyLoss()
-
+        self.ignore_index = 194  # `unlabeled` class index.
+        self.loss_fn = nn.CrossEntropyLoss(ignore_index=self.ignore_index)
         self.train_accuracy = Accuracy(task="multiclass", num_classes=num_classes)
         self.val_accuracy = Accuracy(task="multiclass", num_classes=num_classes)
         self.val_iou = JaccardIndex(task="multiclass", num_classes=num_classes)
         self.num_classes = num_classes
-
-        self.hi = 0
 
     def forward(self, x):
         return self.model(x)
@@ -36,16 +34,15 @@ class LSegModule(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         img, target_val = batch
 
-        # Get one hot encoding of target
-        target_onehot = torch.nn.functional.one_hot(target_val, num_classes=self.num_classes).float()
-        target_onehot = torch.permute(
-            target_onehot, (0, 3, 1, 2)
-        )  # (batch_size, H,W,num_labels) to (batch_size, num_labels,H,W)
-
+        # Pytorch's CE Loss can accept target_val with classes indices in the range [0, num_classes). 
+        # No need to one-hot encode it. Note that it ignores unlabeled class. 
         out = self(img)
-        loss = self.loss_fn(out, target_onehot)
+        loss = self.loss_fn(out, target_val)
+        
+        # Predictions to measure accuracy. Remove unlabeled classes cases before evaluating metrics
         preds = torch.argmax(out, dim=1)
-
+        preds, target_val = self._filter_invalid_labels_from_predictions(preds, target_val)
+        
         # Update and log training metrics
         self.train_accuracy.update(preds, target_val)
         self.log("train_loss", loss, prog_bar=True)
@@ -60,15 +57,14 @@ class LSegModule(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         img, target_val = batch
 
-        # Get one hot encoding of target
-        target_onehot = torch.nn.functional.one_hot(target_val, num_classes=self.num_classes).float()
-        target_onehot = torch.permute(
-            target_onehot, (0, 3, 1, 2)
-        )  # (batch_size, H,W,num_labels) to (batch_size, num_labels,H,W)
-
+        # Pytorch's CE Loss can accept target_val with classes indices in the range [0, num_classes). 
+        # No need to one-hot encode it. Note that it ignores unlabeled class. 
         out = self(img)
-        val_loss = self.loss_fn(out, target_onehot)
+        val_loss = self.loss_fn(out, target_val)
+
+        # Predictions to measure accuracy. Remove unlabeled classes cases before evaluating metrics
         preds = torch.argmax(out, dim=1)
+        preds, target_val = self._filter_invalid_labels_from_predictions(preds, target_val)
 
         # Update and log validation metrics
         self.val_accuracy.update(preds, target_val)
@@ -83,3 +79,9 @@ class LSegModule(pl.LightningModule):
         self.log("val_iou_epoch", self.val_iou.compute())
         self.val_accuracy.reset()
         self.val_iou.reset()
+
+    def _filter_invalid_labels_from_predictions(self, hard_model_predictions, target_val):
+        # Ignore any label indexed at 194 from target for loss computation, which is for unlabeled. 
+        valid_pixels = target_val != self.ignore_index
+        return hard_model_predictions[valid_pixels], target_val[valid_pixels]
+

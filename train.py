@@ -13,8 +13,8 @@ from Lseg.data.util import get_labels, get_dataset
 
 
 # Path to the latest checkpoint. Set to None if you don't have.
-# latest_checkpoint_path = "checkpoints/epoch=epoch=0-train_loss=train_loss=4.9139.ckpt"
-latest_checkpoint_path = "checkpoints/checkpoint_epoch=3-val_loss=4.9235"
+# latest_checkpoint_path = "checkpoints/checkpoint_epoch=3-val_loss=4.9235.ckpt"
+latest_checkpoint_path = "checkpoints/lastest-epoch=5-step=54000.ckpt"
 # latest_checkpoint_path = None
 
 # Change these as required
@@ -30,7 +30,7 @@ config = {
     "num_features": 512,
 }
 
-train_dataloaders = DataLoader(train_dataset, batch_size=config["batch_size"], shuffle=False, num_workers=8)
+train_dataloaders = DataLoader(train_dataset, batch_size=config["batch_size"], shuffle=True, num_workers=8)
 val_dataloaders = DataLoader(val_dataset, batch_size=config["batch_size"], shuffle=False, num_workers=8)
 
 net = LSegNet(
@@ -64,7 +64,7 @@ last_checkpoint_callback = ModelCheckpoint(
     dirpath="checkpoints",
     monitor="step",  
     mode="max", 
-    every_n_train_steps = 1000, 
+    every_n_train_steps = 3000, 
     save_top_k=1,  # Only keep one model
     filename="lastest-{epoch}-{step}",  # Filename format
 )
@@ -83,6 +83,8 @@ trainer = pl.Trainer(
     precision=16 if torch.cuda.is_available() else 32,  # Use mixed precision if using GPU
     callbacks=[best_val_checkpoint_callback, last_checkpoint_callback],
     logger=wandb_logger,
+    # limit_train_batches=1,  # For testing purposes. 
+    # limit_val_batches=1,
 )
 
 # Continue training
