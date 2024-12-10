@@ -8,25 +8,30 @@ from Lseg.lseg_net import LSegNet
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.utilities.model_summary import ModelSummary
 from pytorch_lightning.loggers import WandbLogger
+from torch.utils.data import ConcatDataset
 
 from Lseg.data.util import get_labels, get_dataset
 
 
 # Path to the latest checkpoint. Set to None if you don't have.
-latest_checkpoint_path = "checkpoints/checkpoint_epoch=0-val_loss=4.7304.ckpt"
+# latest_checkpoint_path = "checkpoints/checkpoint_epoch=0-val_loss=4.7304.ckpt"
 # latest_checkpoint_path = "checkpoints/lastest-epoch=5-step=54000.ckpt"
-# latest_checkpoint_path = None
+latest_checkpoint_path = None
 
-# Change these as required
-train_dataset = get_dataset(dataset_name="coco", get_train=True)
-val_dataset = get_dataset(dataset_name="coco", get_train=False)
+# Concatenate ade20k and coco datasets
+train_coco_dataset = get_dataset(dataset_name="coco", get_train=True)
+train_ade20k_dataset = get_dataset(dataset_name="ade20k", get_train=True)
+val_coco_dataset = get_dataset(dataset_name="coco", get_train=False)
+val_ade20k_dataset = get_dataset(dataset_name="ade20k", get_train=False)
+train_dataset = ConcatDataset([train_coco_dataset, train_ade20k_dataset])
+val_dataset = ConcatDataset([val_coco_dataset, val_ade20k_dataset])
 labels = get_labels()
 
 # Configuration
 config = {
     "batch_size": 12,  # 6
     "base_lr": 0.04,
-    "max_epochs": 50,
+    "max_epochs": 10,
     "num_features": 512,
 }
 
