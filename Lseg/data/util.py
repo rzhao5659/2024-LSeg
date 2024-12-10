@@ -16,7 +16,7 @@ coco_train_text_path = "mseg-api/mseg/dataset_lists/coco-panoptic-133-relabeled/
 coco_val_text_path = "mseg-api/mseg/dataset_lists/coco-panoptic-133-relabeled/list/val.txt"
 ade20k_images_dir = "data/mseg_dataset/ADE20K/"
 ade20k_train_text_path = "mseg-api/mseg/dataset_lists/ade20k-150-relabeled/list/train.txt"
-ade20k_val_text_path = "mseg-api/mseg/dataset_lists/ade20k-150-relabeled/list/train.txt"
+ade20k_val_text_path = "mseg-api/mseg/dataset_lists/ade20k-150-relabeled/list/val.txt"
 
 
 # This is a Callable object similar to pytorch transforms.
@@ -43,9 +43,11 @@ class ToUniversalLabel:
 def change_255_to_194(tensor):
     return torch.where(tensor == 255, torch.tensor(194, dtype=tensor.dtype), tensor)
 
-
 def get_dataset(dataset_name: str, get_train: bool):
-    """Gets validation set if get_train = False.  dataset_name must be coco or ade20k"""
+    """
+    Gets validation set if get_train = False.  dataset_name must be coco or ade20k.
+    Transforms are applied in this order: together_transform, img_transform, label_transform.
+    """
     assert dataset_name in DATASETS, "Must be either coco or ade20k"
     if dataset_name == "coco":
         img_dir = coco_images_dir
@@ -58,27 +60,49 @@ def get_dataset(dataset_name: str, get_train: bool):
         val_text_path = ade20k_val_text_path
         dataset_actual_name = "ade20k-150-relabeled"
 
-    img_transform = v2.Compose(
-        [
-            v2.Resize(size=(320, 320)),
-            lambda x: x / 255.0,  # Normalize from [0,255] to unit range.
-            v2.ToDtype(torch.float32),
-            v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ]
-    )
+    if get_train is True:
+        # Apply random resized crop instead of resizing.
+        together_transform = v2.Compose(
+            [
+                ToUniversalLabel(dataset_actual_name),
+                CustomRandomRandomResizedCrop(
+                    size=(320, 320), scale=(0.2, 0.5), ratio=(0.75, 1.33), interpolation=InterpolationMode.NEAREST
+                ),
+            ]
+        )
+        img_transform = v2.Compose(
+            [
+                v2.ToDtype(torch.float32),
+                lambda x: x / 255.0,  # Normalize from [0,255] to unit range.
+                v2.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),  # Normalization copied from ImageNet
+            ]
+        )
+        label_transform = v2.Compose([v2.ToDtype(torch.int64), change_255_to_194])
 
-    label_transform = v2.Compose(
-        [
-            lambda x: x.unsqueeze(0),
-            v2.Resize(
-                size=(320, 320), interpolation=InterpolationMode.NEAREST
-            ),  # This requires a channel dimension for some reason...
-            lambda x: x.squeeze(0),
-            lambda x: change_255_to_194(x),
-        ]
-    )
+    else:
+        # Apply resize for validation set.
+        img_transform = v2.Compose(
+            [
+                v2.ToDtype(torch.float32),
+                v2.Resize(size=(320, 320)),
+                lambda x: x / 255.0,  # Normalize from [0,255] to unit range.
+                v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ]
+        )
 
-    together_transform = ToUniversalLabel(dataset_actual_name)
+        label_transform = v2.Compose(
+            [
+                lambda x: x.unsqueeze(0),
+                v2.Resize(
+                    size=(320, 320), interpolation=InterpolationMode.NEAREST
+                ),  # This requires a channel dimension for some reason...
+                lambda x: x.squeeze(0),
+                lambda x: change_255_to_194(x),
+            ]
+        )
+        together_transform = ToUniversalLabel(dataset_actual_name)
 
     if get_train is True:
         dataset = SemData(
