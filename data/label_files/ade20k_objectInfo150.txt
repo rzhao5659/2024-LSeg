@@ -1,4 +1,0 @@
-Idx,Ratio,Train,Val,Stuff,Name
-1,0.1576,11664,1172,1,wall
-2,0.1072,6046,612,1,building;edifice
-3,0.0878,8265,796,1,sky
