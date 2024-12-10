@@ -115,7 +115,13 @@ class SemData(Dataset):
         if self.split == "test":
             # use dummy label in transform, since label unknown for test
             label = image[:, :, 0]
-        if self.together_transform is not None:  # The fix is move this up.
+
+        # Cast them both to tensors
+        image = torch.permute(torch.from_numpy(image), (2, 0, 1))
+        label = torch.from_numpy(label)
+
+        # Apply transforms.
+        if self.together_transform is not None:
             image, label = self.together_transform(image, label)
         if self.img_transform is not None:
             image = self.img_transform(image)

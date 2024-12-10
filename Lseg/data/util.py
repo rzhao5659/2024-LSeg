@@ -60,7 +60,6 @@ def get_dataset(dataset_name: str, get_train: bool):
 
     img_transform = v2.Compose(
         [
-            v2.ToTensor(),
             v2.Resize(size=(320, 320)),
             lambda x: x / 255.0,  # Normalize from [0,255] to unit range.
             v2.ToDtype(torch.float32),
@@ -70,7 +69,6 @@ def get_dataset(dataset_name: str, get_train: bool):
 
     label_transform = v2.Compose(
         [
-            v2.ToTensor(),
             lambda x: x.unsqueeze(0),
             v2.Resize(
                 size=(320, 320), interpolation=InterpolationMode.NEAREST
