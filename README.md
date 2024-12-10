@@ -1,17 +1,27 @@
 # Requirements
 
-Install mseg module, then install our requirements
+Install mseg module (only works in Linux or MacOS), then install our requirements
 
 ```
 pip install -e mseg
 pip install -r requirements.txt
 pip install git+https://github.com/openai/CLIP.git
 ```
+# Usage
+To train on cluster.
+```
+sbatch train_script_on_hpc.sh
+```
+This essentially runs the python script `train.py`.
+
+To evaluate the trained model: `demo.ipynb`.
 
 ## Data Notes
 
 We used MSeg. \
 The semantic labels outputs corresponds to the `universal` column in `mseg-api/mseg/class_remapping_files/MSeg_master.tsv`
+
+The datasets such as `COCOPanoptic` and `ADE20K` must lie within the folder `data/mseg_dataset/`
 
 ## DPT notes
 
