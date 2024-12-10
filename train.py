@@ -13,8 +13,8 @@ from Lseg.data.util import get_labels, get_dataset
 
 
 # Path to the latest checkpoint. Set to None if you don't have.
-# latest_checkpoint_path = "checkpoints/checkpoint_epoch=3-val_loss=4.9235.ckpt"
-latest_checkpoint_path = "checkpoints/lastest-epoch=5-step=54000.ckpt"
+latest_checkpoint_path = "checkpoints/checkpoint_epoch=0-val_loss=4.7304.ckpt"
+# latest_checkpoint_path = "checkpoints/lastest-epoch=5-step=54000.ckpt"
 # latest_checkpoint_path = None
 
 # Change these as required
@@ -24,7 +24,7 @@ labels = get_labels()
 
 # Configuration
 config = {
-    "batch_size": 1,  # 6
+    "batch_size": 12,  # 6
     "base_lr": 0.04,
     "max_epochs": 50,
     "num_features": 512,
@@ -83,8 +83,8 @@ trainer = pl.Trainer(
     precision=16 if torch.cuda.is_available() else 32,  # Use mixed precision if using GPU
     callbacks=[best_val_checkpoint_callback, last_checkpoint_callback],
     logger=wandb_logger,
-    limit_train_batches=1,  # For testing purposes.
-    limit_val_batches=1,
+    # limit_train_batches=1,  # For testing purposes.
+    # limit_val_batches=1,
 )
 
 # Continue training

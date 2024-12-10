@@ -1,27 +1,36 @@
+
+The `main` branch represents our work (Richard, Surahbi, Ryan) at the end of the ML Project.  
+The `rz/main` branch will continue by fixing the mislabeling issue, using RandomResizedCrop instead of Resize for training, and continue training the model for more epochs. 
+
 # Requirements
 
-Install mseg module (only works in Linux or MacOS), then install our requirements
-
+This will install mseg module (only works in Linux or MacOS), our requirements, and the CLIP encoders.
 ```
 pip install -e mseg
 pip install -r requirements.txt
 pip install git+https://github.com/openai/CLIP.git
 ```
+
 # Usage
-To train on cluster.
+To train on cluster: This runs the python script `train.py`.
 ```
 sbatch train_script_on_hpc.sh
 ```
-This essentially runs the python script `train.py`.
 
-To evaluate the trained model: `demo.ipynb`.
+To evaluate the trained model: `demo.ipynb` and `eval.ipynb`
+
+To download our datasets and pretrained model: https://huggingface.co/datasets/richardz03/MSeg_COCO_ADE20K \
+Place the model within checkpoints/ folder.
 
 ## Data Notes
 
 We used MSeg. \
 The semantic labels outputs corresponds to the `universal` column in `mseg-api/mseg/class_remapping_files/MSeg_master.tsv`
 
-The datasets such as `COCOPanoptic` and `ADE20K` must lie within the folder `data/mseg_dataset/`
+The datasets such as `COCOPanoptic` and `ADE20K` must lie within the folder `data/mseg_dataset/`:
+- `COCOPanoptic/` should contain `images/` and `semantic_relabeled133/` subfolders
+- `ADE20K/` should contain `images/` and `annotations_semseg150_relabeled/` subfolders.
+These datasets are downloaded from MSeg repository (`mseg_api`) with remapping applied as they describe.
 
 ## DPT notes
 
