@@ -24,7 +24,7 @@ labels = get_labels()
 
 # Configuration
 config = {
-    "batch_size": 12,  # 6
+    "batch_size": 1,  # 6
     "base_lr": 0.04,
     "max_epochs": 50,
     "num_features": 512,
@@ -62,9 +62,9 @@ best_val_checkpoint_callback = ModelCheckpoint(
 
 last_checkpoint_callback = ModelCheckpoint(
     dirpath="checkpoints",
-    monitor="step",  
-    mode="max", 
-    every_n_train_steps = 3000, 
+    monitor="step",
+    mode="max",
+    every_n_train_steps=3000,
     save_top_k=1,  # Only keep one model
     filename="lastest-{epoch}-{step}",  # Filename format
 )
@@ -83,8 +83,8 @@ trainer = pl.Trainer(
     precision=16 if torch.cuda.is_available() else 32,  # Use mixed precision if using GPU
     callbacks=[best_val_checkpoint_callback, last_checkpoint_callback],
     logger=wandb_logger,
-    # limit_train_batches=1,  # For testing purposes. 
-    # limit_val_batches=1,
+    limit_train_batches=1,  # For testing purposes.
+    limit_val_batches=1,
 )
 
 # Continue training

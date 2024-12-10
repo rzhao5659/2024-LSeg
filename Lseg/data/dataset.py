@@ -115,10 +115,10 @@ class SemData(Dataset):
         if self.split == "test":
             # use dummy label in transform, since label unknown for test
             label = image[:, :, 0]
+        if self.together_transform is not None:  # The fix is move this up.
+            image, label = self.together_transform(image, label)
         if self.img_transform is not None:
             image = self.img_transform(image)
         if self.label_transform is not None:
             label = self.label_transform(label)
-        if self.together_transform is not None:
-            image, label = self.together_transform(image, label)
         return image, label

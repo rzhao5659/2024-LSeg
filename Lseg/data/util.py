@@ -71,8 +71,12 @@ def get_dataset(dataset_name: str, get_train: bool):
     label_transform = v2.Compose(
         [
             v2.ToTensor(),
-            v2.Resize(size=(320, 320), interpolation=InterpolationMode.NEAREST),
-            lambda x: change_255_to_194(x),  # Using lambda to apply the custom transform
+            lambda x: x.unsqueeze(0),
+            v2.Resize(
+                size=(320, 320), interpolation=InterpolationMode.NEAREST
+            ),  # This requires a channel dimension for some reason...
+            lambda x: x.squeeze(0),
+            lambda x: change_255_to_194(x),
         ]
     )
 
