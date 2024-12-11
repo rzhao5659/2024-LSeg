@@ -35,7 +35,6 @@ class CustomRandomRandomResizedCrop:
 
     def __call__(self, image, label):
         # Append label as a channel of the image
-        print(image.shape, label.shape)
         label = label.unsqueeze(0)
         image_and_label = torch.cat([image, label], dim=0)
         # Apply the transformation
