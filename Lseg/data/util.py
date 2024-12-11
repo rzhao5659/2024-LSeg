@@ -7,6 +7,7 @@ from torchvision.transforms import v2
 from torchvision.transforms import InterpolationMode
 from torchvision.transforms import RandomResizedCrop
 from PIL import Image
+from typing import Tuple
 
 # PATHS
 DATASETS = ["coco", "ade20k"]
@@ -66,7 +67,8 @@ class ToUniversalLabel:
 def change_255_to_194(tensor):
     return torch.where(tensor == 255, torch.tensor(194, dtype=tensor.dtype), tensor)
 
-def get_dataset(dataset_name: str, get_train: bool):
+
+def get_dataset(dataset_name: str, get_train: bool, resize_size: Tuple[int] = (320, 320)):
     """
     Gets validation set if get_train = False.  dataset_name must be coco or ade20k.
     Transforms are applied in this order: together_transform, img_transform, label_transform.
@@ -89,7 +91,7 @@ def get_dataset(dataset_name: str, get_train: bool):
             [
                 ToUniversalLabel(dataset_actual_name),
                 CustomRandomRandomResizedCrop(
-                    size=(320, 320), scale=(0.2, 0.5), ratio=(0.75, 1.33), interpolation=InterpolationMode.NEAREST
+                    size=resize_size, scale=(0.2, 0.5), ratio=(0.75, 1.33), interpolation=InterpolationMode.NEAREST
                 ),
             ]
         )
@@ -109,7 +111,7 @@ def get_dataset(dataset_name: str, get_train: bool):
         img_transform = v2.Compose(
             [
                 v2.ToDtype(torch.float32),
-                v2.Resize(size=(320, 320)),
+                v2.Resize(size=resize_size),
                 lambda x: x / 255.0,  # Normalize from [0,255] to unit range.
                 v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ]
@@ -119,7 +121,7 @@ def get_dataset(dataset_name: str, get_train: bool):
             [
                 lambda x: x.unsqueeze(0),
                 v2.Resize(
-                    size=(320, 320), interpolation=InterpolationMode.NEAREST
+                    size=resize_size, interpolation=InterpolationMode.NEAREST
                 ),  # This requires a channel dimension for some reason...
                 lambda x: x.squeeze(0),
                 lambda x: change_255_to_194(x),
