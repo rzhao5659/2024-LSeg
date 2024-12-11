@@ -1,3 +1,8 @@
+# Overview
+
+It's an reimplementation of **Language-driven Semantic Segmentation** (LSeg) model from https://arxiv.org/abs/2201.03546.
+It's a multimodal model for image semantic segmentation.  As a brief summary, LSeg combines a CLIP pretrained text encoder (ViT-B/32 architecture) and a Dense Prediction Transformer pixel-wise image encoder (DPT), project them onto the same multimodal embedding space, and use contrastive learning for training. 
+
 # Requirements
 
 This will install mseg module (only works in Linux or MacOS), our requirements, and the CLIP encoders.
