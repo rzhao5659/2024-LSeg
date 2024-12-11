@@ -5,6 +5,7 @@ from Lseg.data.dataset import SemData
 import os
 from torchvision.transforms import v2
 from torchvision.transforms import InterpolationMode
+from torchvision.transforms import RandomResizedCrop
 from PIL import Image
 
 # PATHS
@@ -17,6 +18,28 @@ coco_val_text_path = "mseg-api/mseg/dataset_lists/coco-panoptic-133-relabeled/li
 ade20k_images_dir = "data/mseg_dataset/ADE20K/"
 ade20k_train_text_path = "mseg-api/mseg/dataset_lists/ade20k-150-relabeled/list/train.txt"
 ade20k_val_text_path = "mseg-api/mseg/dataset_lists/ade20k-150-relabeled/list/val.txt"
+
+
+class CustomRandomRandomResizedCrop:
+    """Performs RandomResizedCrop, but with a function prototype that allows to use it as a together_transform"""
+
+    def __init__(self, size, scale, ratio, interpolation):
+        self.size = size
+        self.scale = scale
+        self.ratio = ratio
+        self.interpolation = interpolation
+        self.random_resized_crop_transform = RandomResizedCrop(
+            size=self.size, scale=self.scale, ratio=self.ratio, interpolation=self.interpolation
+        )
+
+    def __call__(self, image, label):
+        # Append label as a channel of the image
+        print(image.shape, label.shape)
+        label = label.unsqueeze(0)
+        image_and_label = torch.cat([image, label], dim=0)
+        # Apply the transformation
+        image_and_label = self.random_resized_crop_transform(image_and_label)
+        return image_and_label[0:3], image_and_label[3]
 
 
 # This is a Callable object similar to pytorch transforms.
