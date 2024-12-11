@@ -1,6 +1,3 @@
-The `main` branch represents our work (Richard, Surahbi, Ryan) at the end of the ML Project.  
-The `rz/main` branch will continue by fixing the mislabeling issue, using RandomResizedCrop instead of Resize for training, and training the model for more epochs.
-
 # Requirements
 
 This will install mseg module (only works in Linux or MacOS), our requirements, and the CLIP encoders.
